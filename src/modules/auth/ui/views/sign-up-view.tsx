@@ -4,10 +4,10 @@ import Link from "next/link"; // Use if you need to link to another page
 import { useForm } from "react-hook-form"; // Use if you're using react-hook-form
 import { OctagonAlertIcon }from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod"; // Use if you're using react-hook-form with zod
-import { useRouter } from "next/navigation"; // Use if you need to navigate programmatically
+// Use if you need to navigate programmatically
 import { useState } from "react"; // Use if you need to manage local state
-
-
+import { useRouter } from "next/navigation"; // Use if you need to navigate programmatically
+import {FaGithub, FaGoogle} from "react-icons/fa";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client"; 
 
@@ -35,7 +35,8 @@ const formSchema = z.object({
   path: ["confirmPassword"],
 });
 export const SignUpView = () => {
-  const router = useRouter();
+  const router = useRouter(); // Use if you need to navigate programmatically
+ 
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -48,7 +49,7 @@ export const SignUpView = () => {
     },
   });
  //When the form is submitted, this code tries to log in the user using email and password. If login succeeds, it redirects to the homepage. If it fails, it shows the error message.
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+  const onSubmit =  (data: z.infer<typeof formSchema>) => {
     
    setError(null);
    setPending(true);
@@ -56,12 +57,14 @@ export const SignUpView = () => {
     {
       name: data.name,
       email: data.email,
-      password: data.password
+      password: data.password,
+      callbackURL: "/",
     },
     {
       onSuccess: () => {
          setPending(false);
         router.push("/");
+        
       },
       onError: ({error}) => {
         setError(error.message);
@@ -71,7 +74,32 @@ export const SignUpView = () => {
 
  
   };
+  const onSocial =  (provider:"google" | "github") => {
 
+   setError(null);
+   setPending(true);
+    authClient.signIn.social(
+    {
+      provider: provider,
+      callbackURL: "/"
+    },
+    {
+      onSuccess: () => {
+         setPending(false);
+      
+      },
+      onError: ({error}) => {
+        setPending(false);
+        setError(error.message);
+      }
+    }
+  );
+
+ 
+  };
+
+
+    
 
     return (
       <div className="flex flex-col gap-6">
@@ -182,25 +210,26 @@ export const SignUpView = () => {
                     or continue with
                   </span>
                  </div>
-                 <div className="grid grid-cols-2 gap-4">
+                 <div className="flex justify-center gap-4 mt-2 mb-4">
                   <button
-                  disabled={pending}
-                    variant="outline"
-                    type="button"
-                    className="w-full"
-                    >
-                      Google
-                    </button>
-
-                    <button
                     disabled={pending}
-                    variant="outline"
+                    onClick={() => onSocial("google")}
                     type="button"
-                    className="w-full"
-                    >
-                      Github
-                    </button>
-                 </div>
+                    className="w-14 h-14 flex items-center justify-center rounded-full border border-border bg-white shadow hover:bg-gray-50 transition-colors text-xl"
+                    aria-label="Sign in with Google"
+                  >
+                    <FaGoogle className="text-[#EA4335]" />
+                  </button>
+                  <button
+                    disabled={pending}
+                    onClick={() => onSocial("github")}
+                    type="button"
+                    className="w-14 h-14 flex items-center justify-center rounded-full border border-border bg-white shadow hover:bg-gray-50 transition-colors text-xl"
+                    aria-label="Sign in with GitHub"
+                  >
+                    <FaGithub className="text-black" />
+                  </button>
+                </div>
                  <div className="text-center text-sm ">
                    Already have an account?{" "} <Link href="/sign-in" className="underline underline-offset-4 text-green-500 hover:text-green-600">
                       Sign In
