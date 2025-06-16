@@ -5,7 +5,7 @@ import { input } from "@/components/ui/input";
 import { Button} from "@/components/ui/button";
 
 export default function Home() {
-  const { data: session } = authClient.session.useSession();
+  const { data: session } = authClient.useSession();
   const[name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
