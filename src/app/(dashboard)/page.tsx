@@ -2,8 +2,10 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { HomeView } from "@/modules/home/ui/views/home-view"; // <-- Complete import path
 import { redirect } from "next/navigation";
+import {caller} from "@/trpc/server";
 
 const Page = async () => {
+  
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -11,7 +13,7 @@ const Page = async () => {
   if (!session) {
     redirect("/sign-in"); // redirect if session not found
   }
-
+  
   return <HomeView />;
 };
 
