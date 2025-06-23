@@ -45,21 +45,30 @@ export const AgentForm = ({
 
   const createdAgent = useMutation(
         trpc.agents.create.mutationOptions({
-            onSuccess: () =>{
-                queryClient.invalidateQueries(
-                    trpc.agents.getMany.queryOptions({}),
-                );
+            onSuccess: (data) =>{
+                console.log('Agent created successfully:', data);
+                
+                // Invalidate all agents queries to ensure the list updates
+                queryClient.invalidateQueries({
+                  queryKey: ['agents']
+                });
+                
+                // Also invalidate the specific getMany query with current filters
+                queryClient.invalidateQueries({
+                  queryKey: ['agents', 'getMany']
+                });
+                
               if(initialValues?.id) {
                 queryClient.invalidateQueries(
                     trpc.agents.getOne.queryOptions({ id: initialValues.id}),
                 );
               }
+              
+              toast.success('Agent created successfully!');
               onSuccess?.();
-
-
-
             },
             onError: (error) => {
+                console.error('Error creating agent:', error);
                 toast.error(error.message);
             },
         }),
