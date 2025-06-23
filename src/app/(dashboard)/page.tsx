@@ -1,19 +1,21 @@
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-import { HomeView } from "@/modules/home/ui/views/home-view"; // <-- Complete import path
-import { redirect } from "next/navigation";
+"use client";
 
+import { HomeView } from "@/modules/home/ui/views/home-view";
+import { useEffect, useState } from "react";
 
-const Page = async () => {
-  
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+const Page = () => {
+  const [isClient, setIsClient] = useState(false);
 
-  if (!session) {
-    redirect("/sign-in"); // redirect if session not found
+  // Ensure this component only renders on the client side
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Don't render anything on the server side
+  if (!isClient) {
+    return <div>Loading...</div>;
   }
-  
+
   return <HomeView />;
 };
 
