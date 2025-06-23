@@ -1,7 +1,8 @@
 "use client"
 
+import {useState} from "react";
  import { useTRPC } from "@/trpc/client";
- import { useSuspenseQuery } from "@tanstack/react-query";
+ import { useSuspenseQuery,useQueryClient,useMutation } from "@tanstack/react-query";
  import { useRouter } from "next/navigation";
  import { useEffect } from "react";
  import { LoadingState  } from "@/components/loading-state";
@@ -10,18 +11,49 @@
 import { GeneratedAvatar } from "@/components/generated-avatar";
 import { Badge } from "@/components/ui/badge";
 import { VideoIcon } from "lucide-react";
-
-
+import { toast } from "sonner";
+import { useConfirm } from "@/hooks/use-confirm";
+import { UpdateAgentDialog } from "../components/update-agent-dialog";
 
  interface Props {
    agentId: string;
  }
 
  export const AgentIdView = ({ agentId }: Props) => {
+ const trpc = useTRPC();
+ const router = useRouter();
+ const queryClient = useQueryClient();
+
+ const [updateAgentDialogOpen, setUpdateAgentDialogOpen] = useState(false);
+
  
-  const trpc = useTRPC();
-  const router = useRouter();
   const { data, error } = useSuspenseQuery(trpc.agents.getOne.queryOptions({ id: agentId }));
+
+  const removeAgent = useMutation(
+trpc.agents.remove.mutationOptions({
+onSuccess: async () => {
+ await queryClient.invalidateQueries(trpc.agents.getMany.queryOptions({}));
+  router.push("/agents");
+},
+onError: (error) => {
+  toast.error(error.message);
+},
+
+}),
+  );
+  const [RemoveConfirmation, confirmRemove] = useConfirm(
+    "Are you sure?",
+    `The following action will remove ${data.meetingCount} associated meetings`
+  );
+
+  const handleRemoveAgent = async () => {
+    const ok = await confirmRemove();
+    if(!ok) return;
+
+    await removeAgent.mutateAsync({id: agentId});
+  }
+
+
 
   // Handle authentication errors
   useEffect(() => {
@@ -36,12 +68,19 @@ import { VideoIcon } from "lucide-react";
   }
 
    return (
+    <>
+    <RemoveConfirmation />
+    <UpdateAgentDialog
+    open={updateAgentDialogOpen}
+    onOpenChange={setUpdateAgentDialogOpen}
+    initialValues={data}
+    />
      <div className="flex-1 py-4 px-4 md:px-8 flex flex-col gap-y-4">
           <AgentIdViewHeader
           agentId={agentId}
           agentName={data.name}
-          onEdit={() => {}}
-          onRemove={() => {}}
+          onEdit={() => setUpdateAgentDialogOpen(true) }
+          onRemove={handleRemoveAgent}
           
           />
           <div className="bg-white rounded-lg border">
@@ -68,6 +107,7 @@ import { VideoIcon } from "lucide-react";
             </div>
           </div>
      </div>
+     </>
   );
  };
 
