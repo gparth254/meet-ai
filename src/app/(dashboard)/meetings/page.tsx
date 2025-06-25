@@ -7,20 +7,30 @@ import { MeetingsListHeader } from "@/modules/meetings/ui/components/meetings-li
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import {loadSearchParams} from "@/modules/meetings/params";
+import { SearchParams } from "nuqs/server";
 
+interface props {
+    searchParams: Promise<SearchParams>;
+}
 
-const Page = async () => {
+const Page = async ({searchParams}:props) => {
+    const filters = await loadSearchParams(searchParams);
     const session = await auth.api.getSession({
         headers: await headers(),
     });
     if(!session){
         redirect("/sign-in");
     }
+    
     const queryClient = getQueryClient();
+    
+    // Prefetch the meetings data using the server-side caller
     await queryClient.prefetchQuery({
-        queryKey: ['meetings', 'getMany'],
-        queryFn: () => caller.meetings.getMany({})
+        queryKey: ['meetings', 'getMany', filters],
+        queryFn: () => caller.meetings.getMany(filters),
     });
+
     return(
         <>
         <MeetingsListHeader />
@@ -37,6 +47,5 @@ const Page = async () => {
         
     );
 };
-
 
 export default Page;
