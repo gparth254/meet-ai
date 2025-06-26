@@ -10,48 +10,94 @@ import { columns } from "../components/columns";
 import { EmptyState } from "@/components/empty-state";
 import { useMeetingsFilters } from "../../hooks/use-meetings-filters";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+
 export const MeetingsView = () => {
     const trpc = useTRPC();
     const router = useRouter();
-     const [filters,setFilters] = useMeetingsFilters();
-    const { data } = useSuspenseQuery(trpc.meetings.getMany.queryOptions({
-    ...filters,
-
+    const [filters, setFilters] = useMeetingsFilters();
+    
+    const { data, error } = useSuspenseQuery(trpc.meetings.getMany.queryOptions({
+        ...filters,
     }));
-     
+
+    // Handle authentication errors
+    useEffect(() => {
+        if (error && error.message?.includes('You must be logged in')) {
+            console.log('Authentication error detected, redirecting to sign-in');
+            router.push('/sign-in');
+        }
+    }, [error, router]);
+
+    // Handle row clicks - navigate to meeting details
+    const handleRowClick = (meeting: any) => {
+        console.log('Meeting clicked:', meeting);
+        router.push(`/meetings/${meeting.id}`);
+    };
+
+    // If there's an authentication error, show loading while redirecting
+    if (error && error.message?.includes('You must be logged in')) {
+        return <MeetingsViewLoading />;
+    }
+
+    // If there's any other error, show error state
+    if (error) {
+        return (
+            <ErrorState
+                title="Failed to load meetings"
+                description={error.message || "An unexpected error occurred"}
+            />
+        );
+    }
+
+    // Show loading state while data is being fetched
+    if (!data) {
+        return <MeetingsViewLoading />;
+    }
+
+    // Show empty state if no meetings
+    if (data.items.length === 0) {
+        return (
+            <EmptyState
+                title="No meetings found"
+                description="Create your first meeting to get started"
+            />
+        );
+    }
+
     return (
-        <div className="flex-1 pb-4 px-4 md:px-6 flex flex-col gap-y-4">
-          <DataTable data={data.items} columns={columns} onRowClicks={(row: any) => router.push(`/meetings/${row.id}`)} />
-          <DataPagination
-          page={filters.page}
-          totalPages={data.totalPages}
-          onPageChange={(page)=>setFilters({page})}
-          />
-          {data.items.length === 0 && (
-          <EmptyState
-          title="create your first meeting"
-          description="create a meeting to get started"
-          />    
-          )}
+        <div className="space-y-4">
+            <DataTable 
+                data={data.items} 
+                columns={columns} 
+                onRowClicks={handleRowClick}
+            />
+            <DataPagination
+                page={filters.page}
+                totalPages={data.totalPages}
+                onPageChange={(page) => setFilters({ ...filters, page })}
+            />
         </div>
     );
 };
 
 export const MeetingsViewLoading = () => {
-    return(
+    return (
         <LoadingState
-        title ="Loading Meetings" description="This may take a seconds"
+            title="Loading Meetings"
+            description="This may take a few seconds"
         />
     );
 };
 
-export const MeetingsViewError = () =>{
+export const MeetingsViewError = () => {
     return (
         <ErrorState
-          title="Error Loading Meetings"
-          description="Something went wrong"
+            title="Failed to load meetings"
+            description="There was an error loading your meetings. Please try again."
         />
-    )
-}
+    );
+};
 
 

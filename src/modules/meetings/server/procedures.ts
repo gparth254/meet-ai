@@ -230,8 +230,8 @@ export const meetingsRouter = createTRPCRouter({
     // Build the where condition
     const whereConditions = [eq(meetings.userId, ctx.auth.user.id)];
     
-    // Only add search condition if search is provided and not "*"
-    if (search && search !== "*") {
+    // Only add search condition if search is provided and not "*" or empty
+    if (search && search !== "*" && search.trim() !== "") {
       whereConditions.push(ilike(meetings.name, `%${search}%`));
     }
     
@@ -251,7 +251,7 @@ export const meetingsRouter = createTRPCRouter({
       .where(
         and(
           eq(meetings.userId, ctx.auth.user.id),
-          search ? ilike(meetings.name, `%${search}%`) : undefined,
+          search && search !== "*" && search.trim() !== "" ? ilike(meetings.name, `%${search}%`) : undefined,
           agentId ? eq(meetings.agentId, agentId) : undefined,
           status ? eq(meetings.status, status) : undefined,
         
@@ -269,7 +269,7 @@ export const meetingsRouter = createTRPCRouter({
       .innerJoin(agents, eq(meetings.agentId, agents.id))
       .where(and(
         eq(meetings.userId, ctx.auth.user.id),
-        search ? ilike(meetings.name, `%${search}%`) : undefined,
+        search && search !== "*" && search.trim() !== "" ? ilike(meetings.name, `%${search}%`) : undefined,
         agentId ? eq(meetings.agentId, agentId) : undefined,
         status ? eq(meetings.status, status) : undefined,
       ));

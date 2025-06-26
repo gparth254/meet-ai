@@ -33,52 +33,77 @@ export const AgentsView = () => {
   // Handle authentication errors
   useEffect(() => {
     if (error && error.message?.includes('You must be logged in')) {
+      console.log('Authentication error detected, redirecting to sign-in');
       router.push('/sign-in');
     }
   }, [error, router]);
+
+  // Handle row clicks - navigate to agent details
+  const handleRowClick = (agent: any) => {
+    console.log('Agent clicked:', agent);
+    router.push(`/agents/${agent.id}`);
+  };
 
   // If there's an authentication error, show loading while redirecting
   if (error && error.message?.includes('You must be logged in')) {
     return <AgentsViewLoading />;
   }
 
-  return (
-    <div className="flex-1 pb-4  px-4 md:px-8 flex flex-col gap-y-4">
-     
-    
-      <DataTable data={data.items}
-       columns={columns}
-       onRowClicks={(row) => router.push(`/agents/${row.id}`)}
-        />
+  // If there's any other error, show error state
+  if (error) {
+    return (
+      <ErrorState
+        title="Failed to load agents"
+        description={error.message || "An unexpected error occurred"}
+      />
+    );
+  }
 
+  // Show loading state while data is being fetched
+  if (!data) {
+    return <AgentsViewLoading />;
+  }
+
+  // Show empty state if no agents
+  if (data.items.length === 0) {
+    return (
+      <EmptyState
+        title="Create your first agent"
+        description="Create an agent to join your meetings. Each agent will follow your instructions."
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <DataTable 
+        data={data.items} 
+       columns={columns}
+        onRowClicks={handleRowClick}
+        />
       <DataPagination
        page={filters.page}
        totalPages={data.totalPages}
-       onPageChange={(page)=> setFilters({page})}
+        onPageChange={(page) => setFilters({ ...filters, page })}
       />
-
-      {data.items.length === 0 && (
-        <EmptyState
-        title="Create your first agent"
-        description="Create an agent to join your meetings,Each agent will follow your instruction" />
-      )}
     </div>
   );
 };
 
 export const AgentsViewLoading = () => {
-    return(
+  return (
         <LoadingState
-        title ="Loading Agents" description="This may take a seconds"
+      title="Loading Agents"
+      description="This may take a few seconds"
         />
     );
 };
 
-export const AgentsViewError = () =>{
+export const AgentsViewError = () => {
     return (
         <ErrorState
-          title="Error Loading Agents"
-          description="Something went wrong"
+      title="Failed to load agents"
+      description="There was an error loading your agents. Please try again."
         />
-    )
-}
+  );
+};

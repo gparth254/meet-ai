@@ -1,8 +1,9 @@
 "use client";
 
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/modules/dashboard/ui/components/dashboard-sidebar";
 import { DashboardNavbar } from "@/modules/dashboard/ui/components/dashboard-navbar";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { ProtectedRoute } from "@/components/protected-route";
 import { useEffect, useState } from "react";
 
 interface Props {
@@ -23,14 +24,15 @@ const Layout = ({ children }: Props) => {
   }
 
   return (
+    <ProtectedRoute>
     <SidebarProvider>
         <DashboardSidebar />
-      
       <main className="flex flex-col h-screen w-screen bg-muted">
         <DashboardNavbar />
         {children}
       </main>
     </SidebarProvider>
+    </ProtectedRoute>
   );
 };
 

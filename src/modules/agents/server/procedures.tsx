@@ -65,14 +65,8 @@ export const agentsRouter = createTRPCRouter({
       throw new Error("Unauthorized");
     }
     const [existingAgent] = await db
-      .select({
-       
-        ...getTableColumns(agents),
-        agent: agents,
-        duration : sql<number> `EXTRACT(EPOCH FROM (ended_at - started_at))`.as("duration"),
-      })
+      .select()
       .from(agents)
-      .innerJoin(agents, eq(agents.id, input.id))
       .where(
         and(
           eq(agents.id, input.id),
@@ -107,20 +101,15 @@ export const agentsRouter = createTRPCRouter({
     // Build the where condition
     const whereConditions = [eq(agents.userId, ctx.auth.user.id)];
     
-    // Only add search condition if search is provided and not "*"
-    if (search && search !== "*") {
+    // Only add search condition if search is provided and not "*" or empty
+    if (search && search !== "*" && search.trim() !== "") {
       whereConditions.push(ilike(agents.name, `%${search}%`));
     }
     
     console.log('Where conditions:', whereConditions);
     
     const data = await db
-      .select({
-        
-        ...getTableColumns(agents),
-        agent: agents,
-        duration : sql<number> `EXTRACT(EPOCH FROM (ended_at - started_at))`.as("duration"),
-      })
+      .select()
       .from(agents)
       .where(and(...whereConditions))
       .orderBy(desc(agents.createdAt), desc(agents.id))

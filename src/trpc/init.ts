@@ -1,13 +1,15 @@
-import { initTRPC,  TRPCError } from '@trpc/server';
-import { cache } from 'react';
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
+import { initTRPC, TRPCError } from "@trpc/server";
+import { cache } from "react";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 // Define the context type
 interface TRPCContext {
   session: any | null;
   userId: string | null;
 }
+
+const t = initTRPC.context<TRPCContext>().create();
 
 export const createTRPCContext = cache(async (): Promise<TRPCContext> => {
   /**
@@ -34,27 +36,38 @@ export const createTRPCContext = cache(async (): Promise<TRPCContext> => {
     };
   }
 });
-// Avoid exporting the entire t-object
-// since it's not very descriptive.
-// For instance, the use of a t variable
-// is common in i18n libraries.
-const t = initTRPC.context<TRPCContext>().create({
-  /**
-   * @see https://trpc.io/docs/server/data-transformers
-   */
-  // transformer: superjson,
-});
-// Base router and procedure helpers
-export const createTRPCRouter = t.router;
-export const createCallerFactory = t.createCallerFactory;
-export const baseProcedure = t.procedure;
 
+export const createCallerFactory = t.createCallerFactory;
+
+export const createTRPCRouter = t.router;
+
+export const publicProcedure = t.procedure;
+
+export const baseProcedure = t.procedure;
 
 export const protectedProcedure = baseProcedure.use(async ({ next, ctx }) => {
   if (!ctx.session) {
+    console.error('Protected procedure called without session:', {
+      session: ctx.session,
+      userId: ctx.userId,
+      headers: await headers()
+    });
+    
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You must be logged in to access this resource.",
+    });
+  }
+
+  if (!ctx.session.user) {
+    console.error('Protected procedure called with invalid session:', {
+      session: ctx.session,
+      userId: ctx.userId
+    });
+    
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Invalid session. Please sign in again.",
     });
   }
 
