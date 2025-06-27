@@ -1,6 +1,6 @@
 "use client";
 
-
+import { CompletedState } from "../components/completed-state";
 import { CancelledState } from "../components/cancelled-state";
 import { MeetingIdViewHeader } from "../components/meeting-view-header";
 import { LoadingState } from "@/components/loading-state";
@@ -76,7 +76,7 @@ const isProcessing = data.status === "processing";
         
         />
       {isCancelled && <CancelledState/>}
-      {isCompleted && <div>Completed</div>}
+      {isCompleted && <CompletedState data={data}/>}
       {isProcessing && <ProcessingState/>}
       {isActive && <ActiveState meetingId={meetingId}/>}
       {isUpcoming && <UpcomingState 
