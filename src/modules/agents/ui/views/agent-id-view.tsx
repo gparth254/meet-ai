@@ -33,7 +33,11 @@ import { UpdateAgentDialog } from "../components/update-agent-dialog";
 trpc.agents.remove.mutationOptions({
 onSuccess: async () => {
  await queryClient.invalidateQueries(trpc.agents.getMany.queryOptions({}));
-  router.push("/agents");
+ queryClient.invalidateQueries(
+  trpc.premium.getFreeUsage.queryOptions(),
+);
+ 
+ router.push("/agents");
 },
 onError: (error) => {
   toast.error(error.message);

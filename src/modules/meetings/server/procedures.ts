@@ -3,6 +3,7 @@ import {  meetings } from "@/db/schema";
 import { db } from "@/db";
 import {agents,user} from "@/db/schema";
 import JSONL  from "jsonl-parse-stringify"
+import { premiumProcedure } from "@/trpc/init";
 
 import { z } from "zod";
 import { eq, count,and, getTableColumns, ilike,desc,sql,inArray } from "drizzle-orm";
@@ -210,7 +211,7 @@ return transcriptWithSpeakers;
 
 
 
-  create: protectedProcedure.input(meetingsInsertSchema).mutation(async ({ input, ctx }) => {
+  create: premiumProcedure("meetings").input(meetingsInsertSchema).mutation(async ({ input, ctx }) => {
     if (!ctx.auth?.user) {
       throw new Error("Unauthorized");
     }

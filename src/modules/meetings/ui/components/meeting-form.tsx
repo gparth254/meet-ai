@@ -2,7 +2,7 @@ import { useTRPC} from "@/trpc/client";
 import {useQueryClient,useMutation} from "@tanstack/react-query";
 import {useForm } from "react-hook-form";
 import {z} from "zod";
-
+import {useRouter} from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {useQuery} from "@tanstack/react-query";
 
@@ -44,6 +44,7 @@ export const MeetingForm = ({
 
 
 }: MeetingFormProps   ) => {
+    const router = useRouter();
     const trpc = useTRPC();
     const queryClient =useQueryClient();
 
@@ -89,9 +90,15 @@ export const MeetingForm = ({
               toast.success('Meeting created successfully!');
               onSuccess?.(data.id);
             },
+            queryClient.invalidateQueries(
+                trpc.premium.getFreeUsage.queryOptions(),
+            );
             onError: (error) => {
                 console.error('Error creating meeting:', error);
                 toast.error(error.message);
+                if(error.data?.code === "FORBIDDEN"){
+                    router.push("/upgrade");
+                }
             },
         }),
     );

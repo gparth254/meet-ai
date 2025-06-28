@@ -1,5 +1,5 @@
 import { createAuthClient } from "better-auth/react"
-
+import {polarClient} from "@polar-sh/better-auth"
 const baseURL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 if (!baseURL) {
@@ -9,6 +9,7 @@ if (!baseURL) {
 export const authClient = createAuthClient({
   baseURL,
   // Add better error handling
+  plugins: [polarClient()],
   onError: (error) => {
     console.error("Auth client error:", error);
   },

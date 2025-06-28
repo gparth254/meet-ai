@@ -3,7 +3,8 @@ import { betterAuth } from "better-auth";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { sql } from "drizzle-orm";
-
+import {polar,checkout,portal} from "@polar-sh/better-auth"
+import { polarClient } from "./polar";
 // Test database connection before initializing auth
 const testDbConnection = async () => {
   try {
@@ -16,6 +17,20 @@ const testDbConnection = async () => {
 };
 
 export const auth = betterAuth({
+  plugins: [
+    polar({
+      client: polarClient,
+      createCustomerOnCheckout: true,
+      use: [
+      checkout({
+      authenticatedUsersOnly:true,
+      successUrl: "/upgrade", // Replace with actual URL
+    }),
+    portal(),
+  ]
+}),
+  ],
+  
     socialProviders:{
        github: { 
             clientId: process.env.GITHUB_CLIENT_ID as string, 

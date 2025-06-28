@@ -6,7 +6,7 @@ import { z } from "zod";
 import { eq, count,and, getTableColumns, sql,ilike,desc } from "drizzle-orm";
 import {DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MIN_PAGE_SIZE} from "@/constants"
 import { TRPCError } from "@trpc/server";
-
+import { premiumProcedure } from "@/trpc/init";
 export const agentsRouter = createTRPCRouter({
    update: protectedProcedure.input(agentsUpdateSchema).mutation(async ({ input, ctx }) => {
     const [updatedAgent] = await db
@@ -133,7 +133,7 @@ export const agentsRouter = createTRPCRouter({
     };
     
   }),
-  create: protectedProcedure.input(agentsInsertSchema).mutation(async ({ input, ctx }) => {
+  create: premiumProcedure("agents").input(agentsInsertSchema).mutation(async ({ input, ctx }) => {
     if (!ctx.auth?.user) {
       throw new Error("Unauthorized");
     }

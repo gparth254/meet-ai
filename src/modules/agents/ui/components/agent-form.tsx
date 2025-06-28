@@ -10,7 +10,7 @@ import { GeneratedAvatar } from "@/components/generated-avatar";
 import {Input} from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {toast} from "sonner";
-
+import { useRouter } from "next/navigation";
 
 import {
   Form,
@@ -41,6 +41,7 @@ export const AgentForm = ({
 
 }: AgentFormProps   ) => {
     const trpc = useTRPC();
+    const router = useRouter();
     const queryClient =useQueryClient();
 
   const createdAgent = useMutation(
@@ -63,6 +64,9 @@ export const AgentForm = ({
                     trpc.agents.getOne.queryOptions({ id: initialValues.id}),
                 );
               }
+              queryClient.invalidateQueries(
+                trpc.premium.getFreeUsage.queryOptions(),
+            );
               
               toast.success('Agent created successfully!');
               onSuccess?.();
@@ -70,6 +74,9 @@ export const AgentForm = ({
             onError: (error) => {
                 console.error('Error creating agent:', error);
                 toast.error(error.message);
+                if(error.data?.code === "FORBIDDEN"){
+                    router.push("/upgrade");
+                }
             },
         }),
     );
