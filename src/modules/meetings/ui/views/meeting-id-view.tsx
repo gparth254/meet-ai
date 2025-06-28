@@ -36,8 +36,12 @@ interface Props {
     
      const removeMeeting = useMutation(
         trpc.meetings.remove.mutationOptions({
-            onSuccess:()=>{
-                queryClient.invalidateQueries(trpc.meetings.getMany.queryOptions({}));
+            onSuccess: async()=>{
+               await queryClient.invalidateQueries(trpc.meetings.getMany.queryOptions({}));
+              awit  queryClient.invalidateQueries(
+                    trpc.premium.getFreeUsage.queryOptions(),
+                );
+                
                 router.push("/meetings");
             },
             

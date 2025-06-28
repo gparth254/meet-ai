@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
+import { DashboardTrial } from "./dashboard-trail";
 import { DashboardUserButton } from "./dashboard-user-button";
 import {
   Sidebar,
@@ -95,7 +96,11 @@ export const DashboardSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="text-white">
+        
+        <DashboardTrial />
         <DashboardUserButton />
+       
+        
       </SidebarFooter>
     </Sidebar>
   );
